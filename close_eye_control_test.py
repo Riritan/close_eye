@@ -1,19 +1,30 @@
 import subprocess
+from monitorcontrol import get_monitors
 
-# 눈이 감겼을 때 밝기랑 조절하는 함수
-def close_eye(level, volume):
-    # 밝기 조절하는 powershell 명령어 -> 그냥 실행 가능
-    setMonitor = f"$monitor = Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods\n"
-    setBrightness = f"$monitor.WmiSetBrightness(1, %d)\n" % level
+monitors = get_monitors()
 
-    # 소리 조절하는 powershell 명령어 -> nircmd 파일 필요
-    volume_value = int(65535 * (volume / 100))
-    # nircmd가 있는 경로 입력 => 체험존(nircmd.exe파일 옮긴 다음에 그 경로 여기에 입력)
-    nircmd_path = r"C:\Users\luna2\Downloads\nircmd-x64\nircmd.exe"
-    setSound = nircmd_path + " setsysvolume " + str(volume_value)
+def setBrightSound(brightness, volume):
+    # 모니터 밝기 조절
+    if monitors:
+        with monitors[0] as monitor:
+            # 현재 밝기 확인
+            current_brightness = monitor.get_luminance()
+            print(f"현재 밝기: {current_brightness}%")
 
-    # powershell 명령어 실행
-    p = subprocess.run(["powershell.exe", "-Command", setMonitor + setBrightness + setSound], capture_output=True, text=True)
+            # 밝기 설정 (0-100 사이의 값)
+            new_brightness = brightness  # 원하는 밝기 값
+            monitor.set_luminance(new_brightness)
+            print(f"밝기를 {new_brightness}%로 설정했습니다.")
+    else:
+        print("모니터를 찾을 수 없습니다.")
 
-# 인자 순서는 (밝기, 소리)
-close_eye(50, 40)
+    # 소리 조절
+    # 0-100 볼륨 값에서 NirCmd의 범위로 변환
+    volume_value = int(volume * 0.01 * 65536)  # 볼륨 값 계산 (정수 변환)
+    
+    # NirCmd 실행하여 볼륨 조절 (-volume_value로 소리 줄임)
+    subprocess.run(["cmd", "/c", f"nircmd.exe changesysvolume {-volume_value}"])
+
+# 밝기 10%, 볼륨 40%줄임 설정
+setBrightSound(100, 40)
+  
