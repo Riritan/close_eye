@@ -90,7 +90,7 @@ while True:
                 print(f"Blinking Time: {blink_duration:.2f} sec")
                 cv2.putText(image, "blinking", (50, 50), font, 2, (255, 0, 0))
                 print("blinking")
-                setBrightSound(40, 40)
+                setBrightSound(20, 40)
   
                         
         else:  # 눈을 뜨고 있을 때
